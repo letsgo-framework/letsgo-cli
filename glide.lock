@@ -1,0 +1,6 @@
+hash: 44f593ab133f3da34529dfef939e7d29677e2e3108140b2a3741dd34900a04b9
+updated: 2019-05-05T10:20:03.745288569+05:30
+imports:
+- name: gopkg.in/src-d/go-git.v4
+  version: aa6f288c256ff8baf8a7745546a9752323dc0d89
+testImports: []
