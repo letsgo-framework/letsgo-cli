@@ -8,15 +8,19 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
-func main()  {
+var directory string
+var importPath string
 
+func main()  {
 	if os.Args[1] == "init" {
 
 		// Clone repository : clone letsGo
-		directory := os.Args[2]
+		importPath = os.Args[2]
+		directory = os.Args[3]
 
 		pwd := exec.Command("pwd")
 
@@ -28,15 +32,17 @@ func main()  {
 		}
 		path := strings.TrimSuffix(out.String(), "\n")+"/"+directory
 
-		fmt.Printf("Cloning letsGo into %v👍",directory)
+		fmt.Println("Cloning letsGo into : " + directory)
 
 		_, err = git.PlainClone(path, false, &git.CloneOptions{
-			URL:      "https://github.com/Sab94/letsGo",
+			URL:      "https://github.com/letsgo-framework/letsGo",
 		})
 
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Println("Cloning complete")
 
 		// Change package name : change package name in glide.yaml to your package name
 		read, err := ioutil.ReadFile(path+"/glide.yaml")
@@ -44,14 +50,44 @@ func main()  {
 			panic(err)
 		}
 
-		newContents := strings.Replace(string(read), "letsGo", directory, -1)
+		newContents := strings.Replace(string(read), "letsGo", importPath+"/"+directory, -1)
 
 		err = ioutil.WriteFile(path+"/glide.yaml", []byte(newContents), 0)
 		if err != nil {
 			panic(err)
 		}
 
-		// TODO : change the internal package (controllers, tests, helpers etc.) paths as per your requirement
+		fmt.Println("gilde updated")
+		
+		// change the internal package (controllers, tests, helpers etc.) paths as per your requirement
+		err = filepath.Walk(path+"/controllers", Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("Controllers refracted")
+		}
+		
+		err = filepath.Walk(path+"/gql", Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("graphql refracted")
+		}
+
+		err = filepath.Walk(path+"/middlewares", Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("middlewares refracted")
+		}
+		err = filepath.Walk(path+"/routes", Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("routes refracted")
+		}
+
+		fmt.Println("refraction Done")
 
 		// setup .env and .env.testing
 		_, _ = exec.Command("cp", path+"/.env.example", path+"/.env").Output()
@@ -64,5 +100,42 @@ func main()  {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Println("env updated")
 	}
+}
+
+func Visit(path string, fi os.FileInfo, err error) error {
+
+	if err != nil {
+		return err
+	}
+
+	if !!fi.IsDir() {
+		return nil //
+	}
+
+	matched, err := filepath.Match("*.go", fi.Name())
+
+	if err != nil {
+		panic(err)
+		return err
+	}
+
+	if matched {
+		read, err := ioutil.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+
+		newContents := strings.Replace(string(read), "github.com/letsGo", importPath+"/"+directory, -1)
+		
+		err = ioutil.WriteFile(path, []byte(newContents), 0)
+		if err != nil {
+			panic(err)
+		}
+
+	}
+
+	return nil
 }
