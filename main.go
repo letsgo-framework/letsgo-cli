@@ -173,7 +173,7 @@ func Visit(path string, fi os.FileInfo, err error) error {
 			panic(err)
 		}
 
-		newContents := strings.Replace(string(read), "github.com/letsGo", importPath+"/"+directory, -1)
+		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", importPath+"/"+directory, -1)
 		
 		err = ioutil.WriteFile(path, []byte(newContents), 0)
 		if err != nil {
