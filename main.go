@@ -87,6 +87,13 @@ func main()  {
 			fmt.Println("routes refracted")
 		}
 
+		err = filepath.Walk(path, Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("main refracted")
+		}
+
 		fmt.Println("refraction Done")
 
 		// setup .env and .env.testing
