@@ -86,6 +86,13 @@ func main()  {
 		} else {
 			fmt.Println("routes refracted")
 		}
+		
+		err = filepath.Walk(path+"/tests", Visit)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println("tests refracted")
+		}
 
 		err = filepath.Walk(path, Visit)
 		if err != nil {
