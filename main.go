@@ -102,6 +102,28 @@ func main()  {
 		}
 
 		fmt.Println("env updated")
+	} else if os.Args[1] == "generate" || os.Args[1] == "g" {
+		switch os.Args[2] {
+			case "component", "c":
+				fmt.Println("Generating component : "+os.Args[3])
+				componentContent := []byte("package controllers")
+				err := ioutil.WriteFile("./controllers/"+os.Args[3]+".go", componentContent, 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
+				break
+			case "type", "t":
+				fmt.Println("Generating type : "+os.Args[3])
+				typeContent := []byte("package types")
+				err := ioutil.WriteFile("./types/"+os.Args[3]+".go", typeContent, 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
+				break
+			default:
+				fmt.Println("Invalid argument")
+				break
+		}
 	}
 }
 
