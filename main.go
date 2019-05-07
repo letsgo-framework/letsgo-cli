@@ -102,6 +102,15 @@ func main()  {
 		}
 
 		fmt.Println("env updated")
+
+		// remove .git
+		gr := exec.Command("rm", "-rf", ".git")
+		gr.Dir = path
+		err = gr.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 	} else if os.Args[1] == "generate" || os.Args[1] == "g" {
 		switch os.Args[2] {
 			case "component", "c":
