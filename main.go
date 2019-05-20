@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
@@ -16,7 +17,33 @@ var directory string
 var importPath string
 
 func main()  {
-	if os.Args[1] == "init" {
+
+	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
+
+	helpCommand := flag.NewFlagSet("help", flag.ExitOnError)
+
+	runCommand := flag.NewFlagSet("run", flag.ExitOnError)
+	livereload := runCommand.Bool("livereload", false, "run with livereload")
+	l := runCommand.Bool("l", false, "run with livereload")
+
+	generateCommand := flag.NewFlagSet("generate", flag.ExitOnError)
+	//logCommand := flag.NewFlagSet("log", flag.ExitOnError)
+
+	switch os.Args[1] {
+		case "init", "i":
+			initCommand.Parse(os.Args[2:])
+		case "run", "r":
+			runCommand.Parse(os.Args[2:])
+		case "help", "h":
+			helpCommand.Parse(os.Args[2:])
+		case "generate", "g":
+			generateCommand.Parse(os.Args[2:])
+		default:
+			fmt.Printf("%q is not valid command.\n", os.Args[1])
+			os.Exit(2)
+	}
+
+	if initCommand.Parsed() {
 
 		// Clone repository : clone letsGo
 		importPath = os.Args[2]
@@ -125,7 +152,9 @@ func main()  {
 			log.Fatal(err)
 		}
 
-	} else if os.Args[1] == "generate" || os.Args[1] == "g" {
+	}
+
+	if generateCommand.Parsed() {
 		switch os.Args[2] {
 			case "component", "c":
 				fmt.Println("Generating component : "+os.Args[3])
@@ -148,7 +177,33 @@ func main()  {
 				break
 		}
 	}
+
+	if runCommand.Parsed() {
+		runCommand.Parse(os.Args[2:])
+		if *livereload == true || *l == true{
+			_, _ = exec.Command("fresh").Output()
+		} else {
+			_, _ = exec.Command("go", "run", "main.go").Output()
+		}
+
+		// TODO: Show output on console
+	}
+
+	if helpCommand.Parsed() {
+		Usage()
+	}
 }
+
+func Usage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "init <PROJECT_NAME> : Create a new letsgo project\n")
+	fmt.Fprintf(os.Stderr, "generate <FILE_TYPE> <FILE_NAME> : Generate file of controller of type\n")
+	fmt.Fprintf(os.Stderr, "run : Run your project\n")
+	fmt.Fprintf(os.Stderr, "\t -livereload or -l \t with livereload\n")
+	fmt.Fprintf(os.Stderr, "log <ACTION> : Tail or Clear log\n")
+}
+
+
 
 func Visit(path string, fi os.FileInfo, err error) error {
 
