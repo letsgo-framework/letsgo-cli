@@ -88,7 +88,7 @@ func main()  {
 		fmt.Println("Cloning complete")
 
 		// Checkout latest tag
-		checkout := exec.Command("git", "checkout", "1.0.0-beta.0")
+		checkout := exec.Command("git", "checkout", "1.0.0-beta.1")
 		checkout.Dir = path
 		err = checkout.Run()
 		if err != nil {
