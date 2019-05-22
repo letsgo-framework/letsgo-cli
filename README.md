@@ -4,7 +4,5 @@
 cli for letsGo
 
 # Usage
-Start new Project
-```
-letsgo init <PROJECT_NAME>
-```
+
+Full documentation is available here : https://letsgo-framework.github.io/cli/CLI.html
