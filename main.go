@@ -88,9 +88,17 @@ func main()  {
 		fmt.Println("Cloning complete")
 
 		// Checkout latest tag
-		checkout := exec.Command("git", "checkout", "1.0.0-beta.1")
+		checkout := exec.Command("git", "checkout", "0.1.0")
 		checkout.Dir = path
 		err = checkout.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// remove .git
+		glideLock := exec.Command("rm", "-rf", "glide.lock")
+		glideLock.Dir = path
+		err = glideLock.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -117,22 +125,6 @@ func main()  {
 		} else {
 			fmt.Println("Controllers refracted")
 		}
-		
-		err = filepath.Walk(path+"/gql", Visit)
-		if err != nil {
-			panic(err)
-		} else {
-			fmt.Println("graphql refracted")
-		}
-
-		/* No middleware available
-		err = filepath.Walk(path+"/middlewares", Visit)
-		if err != nil {
-			panic(err)
-		} else {
-			fmt.Println("middlewares refracted")
-		}
-		*/
 
 		err = filepath.Walk(path+"/routes", Visit)
 		if err != nil {
@@ -184,7 +176,7 @@ func main()  {
 	if generateCommand.Parsed() {
 		switch os.Args[2] {
 			case "component", "c":
-				fmt.Println("Generating component : "+os.Args[3])
+				fmt.Println("Generating controller : "+os.Args[3])
 				componentContent := []byte("package controllers")
 				err := ioutil.WriteFile("./controllers/"+os.Args[3]+".go", componentContent, 0644)
 				if err != nil {
