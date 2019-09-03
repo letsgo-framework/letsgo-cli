@@ -123,31 +123,31 @@ func main()  {
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Println("Controllers refracted")
+			fmt.Println("Controllers refactored")
 		}
 
 		err = filepath.Walk(path+"/routes", Visit)
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Println("routes refracted")
+			fmt.Println("routes refactored")
 		}
 		
 		err = filepath.Walk(path+"/tests", Visit)
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Println("tests refracted")
+			fmt.Println("tests refactored")
 		}
 
 		err = filepath.Walk(path, Visit)
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Println("main refracted")
+			fmt.Println("main refactored")
 		}
 
-		fmt.Println("refraction Done")
+		fmt.Println("Done refactoring")
 
 		// setup .env and .env.testing
 		_, _ = exec.Command("cp", path+"/.env.example", path+"/.env").Output()
