@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/common-nighthawk/go-figure"
 	"gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
 	"log"
@@ -39,6 +40,8 @@ func main()  {
 
 	buildCommand := flag.NewFlagSet("build", flag.ExitOnError)
 
+	versionCommand := flag.NewFlagSet("version", flag.ExitOnError)
+
 	switch os.Args[1] {
 		case "init", "i":
 			initCommand.Parse(os.Args[2:])
@@ -54,6 +57,8 @@ func main()  {
 			dockerizeCommand.Parse(os.Args[2:])
 		case "build", "b":
 			buildCommand.Parse(os.Args[2:])
+		case "version", "v":
+			versionCommand.Parse(os.Args[2:])
 		default:
 			fmt.Printf("%q is not valid command.\n", os.Args[1])
 			os.Exit(2)
@@ -217,6 +222,12 @@ func main()  {
 		Usage()
 	}
 
+	if versionCommand.Parsed() {
+		letsGoFigure := figure.NewFigure("letsgo-cli", "", true)
+		letsGoFigure.Print()
+		fmt.Println("letsgo-cli : 0.1.2")
+	}
+
 	if logCommand.Parsed() {
 		if *clearLog == true || *c == true{
 			emptyLogFile, err := os.Create("./log/letsgo.log")
@@ -265,18 +276,21 @@ func main()  {
 }
 
 func Usage() {
+	letsGoFigure := figure.NewFigure("letsgo-cli", "", true)
+	letsGoFigure.Print()
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
 	fmt.Fprintf(w, "Usage of %s:\n\n", os.Args[0])
 	fmt.Fprintf(w, "log <ACTION> \t Tail or Clear log\n")
 	fmt.Fprintf(w, "\t -clear or -c to clrear log\n")
 	fmt.Fprintf(w, "\t <LINE_NUMBER> to tail log file\n")
 	fmt.Fprintf(w, "init <IMPORT_PATH> <PROJECT_NAME> \t Create a new letsgo project \t short i\n")
-	fmt.Fprintf(w, "generate <FILE_TYPE> <FILE_NAME> \t Generate file of controller of type \t short g\n")
+	fmt.Fprintf(w, "generate <FILE_TYPE> <FILE_NAME> \t Generate controller or type \t short g\n")
 	fmt.Fprintf(w, "build \t Build binary \t short b\n")
 	fmt.Fprintf(w, "dockerize <BINARY_NAME> \t Dockerize your project \t short d\n")
 	fmt.Fprintf(w, "help \t Print usage \t short h\n")
+	fmt.Fprintf(w, "version \t letsgo-cli version \t short v\n")
 	fmt.Fprintf(w, "run \t Run your project \t short r\n")
-	fmt.Fprintf(w, "\t -livereload or -l with livereload\n")
+	fmt.Fprintf(w, "\t -livereload or -l to livereload\n")
 	w.Flush()
 }
 

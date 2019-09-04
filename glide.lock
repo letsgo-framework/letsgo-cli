@@ -1,6 +1,8 @@
-hash: 1d46118ecfb7c8148860361854163bba63679c63df0fabb51c56f8a51afe1ab7
-updated: 2019-09-03T10:25:51.816719323+05:30
+hash: cbe617e549d6b399c6e31da33680c0f4a98c2679ff3f57a94aba642574a1b8cf
+updated: 2019-09-04T08:00:01.686043014+05:30
 imports:
+- name: github.com/common-nighthawk/go-figure
+  version: 67e0ed34491ae997c83c5aa2a1cae2cfd4b4ac41
 - name: github.com/emirpasic/gods
   version: 729073a73ce2057955fafa2a8f0ac62b99e950c9
   subpackages:
