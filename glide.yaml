@@ -1,6 +1,0 @@
-package: github.com/letsgo-framework/letsgo-cli
-import:
-- package: gopkg.in/src-d/go-git.v4
-  version: ~4.11.0
-- package: github.com/pilu/fresh
-- package: github.com/common-nighthawk/go-figure

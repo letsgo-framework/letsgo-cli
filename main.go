@@ -83,7 +83,7 @@ func main()  {
 		fmt.Println("Cloning letsgo into : " + directory)
 
 		_, err = git.PlainClone(path, false, &git.CloneOptions{
-			URL:      "https://github.com/letsgo-framework/letsGo",
+			URL:      "https://github.com/letsgo-framework/letsgo",
 		})
 
 		if err != nil {
@@ -93,35 +93,27 @@ func main()  {
 		fmt.Println("Cloning complete")
 
 		// Checkout latest tag
-		checkout := exec.Command("git", "checkout", "0.1.0")
+		checkout := exec.Command("git", "checkout", "0.1.1")
 		checkout.Dir = path
 		err = checkout.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// remove .git
-		glideLock := exec.Command("rm", "-rf", "glide.lock")
-		glideLock.Dir = path
-		err = glideLock.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Change package name : change package name in glide.yaml to your package name
-		read, err := ioutil.ReadFile(path+"/glide.yaml")
+		// Change package name : change package name in go.mod to your package name
+		read, err := ioutil.ReadFile(path+"/go.mod")
 		if err != nil {
 			panic(err)
 		}
 
 		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", importPath+"/"+directory, -1)
 
-		err = ioutil.WriteFile(path+"/glide.yaml", []byte(newContents), 0)
+		err = ioutil.WriteFile(path+"/go.mod", []byte(newContents), 0)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println("gilde updated")
+		fmt.Println("go.mod updated")
 		
 		// change the internal package (controllers, tests, helpers etc.) paths as per your requirement
 		err = filepath.Walk(path+"/controllers", Visit)
@@ -158,10 +150,10 @@ func main()  {
 		_, _ = exec.Command("cp", path+"/.env.example", path+"/.env").Output()
 		_, _ = exec.Command("cp", path+"/.env.example", path+"/.env.testing").Output()
 
-		// Glide
-		gl := exec.Command("glide", "install")
-		gl.Dir = path
-		err = gl.Run()
+		// go mod
+		gm := exec.Command("go", "mod", "download")
+		gm.Dir = path
+		err = gm.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -225,7 +217,7 @@ func main()  {
 	if versionCommand.Parsed() {
 		letsGoFigure := figure.NewFigure("letsgo-cli", "", true)
 		letsGoFigure.Print()
-		fmt.Println("letsgo-cli : 0.1.2")
+		fmt.Println("letsgo-cli : 0.1.3")
 	}
 
 	if logCommand.Parsed() {
