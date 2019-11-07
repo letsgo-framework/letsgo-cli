@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/common-nighthawk/go-figure"
-	"gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,14 +11,24 @@ import (
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/common-nighthawk/go-figure"
+	"gopkg.in/src-d/go-git.v4"
 )
 
-var directory string
-var importPath string
+var directory *string
+var importPath *string
+var router *string
 
-func main()  {
+func main() {
 
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
+
+	router = initCommand.String("router", "gin", "choose router")
+
+	importPath = initCommand.String("importPath", "blank", "import path")
+
+	directory = initCommand.String("directory", "blank", "project name")
 
 	helpCommand := flag.NewFlagSet("help", flag.ExitOnError)
 
@@ -43,33 +51,47 @@ func main()  {
 	versionCommand := flag.NewFlagSet("version", flag.ExitOnError)
 
 	switch os.Args[1] {
-		case "init", "i":
-			initCommand.Parse(os.Args[2:])
-		case "run", "r":
-			runCommand.Parse(os.Args[2:])
-		case "help", "h":
-			helpCommand.Parse(os.Args[2:])
-		case "generate", "g":
-			generateCommand.Parse(os.Args[2:])
-		case "log":
-			logCommand.Parse(os.Args[2:])
-		case "dockerize", "d":
-			dockerizeCommand.Parse(os.Args[2:])
-		case "build", "b":
-			buildCommand.Parse(os.Args[2:])
-		case "version", "v":
-			versionCommand.Parse(os.Args[2:])
-		default:
-			fmt.Printf("%q is not valid command.\n", os.Args[1])
-			os.Exit(2)
+	case "init", "i":
+		initCommand.Parse(os.Args[2:])
+	case "run", "r":
+		runCommand.Parse(os.Args[2:])
+	case "help", "h":
+		helpCommand.Parse(os.Args[2:])
+	case "generate", "g":
+		generateCommand.Parse(os.Args[2:])
+	case "log":
+		logCommand.Parse(os.Args[2:])
+	case "dockerize", "d":
+		dockerizeCommand.Parse(os.Args[2:])
+	case "build", "b":
+		buildCommand.Parse(os.Args[2:])
+	case "version", "v":
+		versionCommand.Parse(os.Args[2:])
+	default:
+		fmt.Printf("%q is not valid command.\n", os.Args[1])
+		os.Exit(2)
 	}
 
 	if initCommand.Parsed() {
 
-		// Clone repository : clone letsgo
-		importPath = os.Args[2]
-		directory = os.Args[3]
+		source := "https://github.com/letsgo-framework/letsgo"
+		if *router == "gin" {
+			source = "https://github.com/letsgo-framework/letsgo"
+		} else if *router == "mux" {
+			source = "https://github.com/letsgo-framework/letsgo-mux"
+		} else {
+			log.Fatal(fmt.Errorf("router not available"))
+		}
 
+		if *importPath == "blank" {
+			log.Fatal(fmt.Errorf("importPath cannot be blank"))
+		}
+
+		if *directory == "blank" {
+			log.Fatal(fmt.Errorf("directory cannot be blank"))
+		}
+
+		// Clone repository : clone letsgo
 		pwd := exec.Command("pwd")
 
 		var out bytes.Buffer
@@ -78,12 +100,12 @@ func main()  {
 		if err != nil {
 			log.Fatal(err)
 		}
-		path := strings.TrimSuffix(out.String(), "\n")+"/"+directory
+		path := strings.TrimSuffix(out.String(), "\n") + "/" + *directory
 
-		fmt.Println("Cloning letsgo into : " + directory)
+		fmt.Println("Cloning letsgo into : " + *directory)
 
 		_, err = git.PlainClone(path, false, &git.CloneOptions{
-			URL:      "https://github.com/letsgo-framework/letsgo",
+			URL: source,
 		})
 
 		if err != nil {
@@ -93,7 +115,8 @@ func main()  {
 		fmt.Println("Cloning complete")
 
 		// Checkout latest tag
-		checkout := exec.Command("git", "checkout", "0.1.1")
+		checkout := exec.Command("git", "checkout", "0.2.0")
+
 		checkout.Dir = path
 		err = checkout.Run()
 		if err != nil {
@@ -101,20 +124,22 @@ func main()  {
 		}
 
 		// Change package name : change package name in go.mod to your package name
-		read, err := ioutil.ReadFile(path+"/go.mod")
+		read, err := ioutil.ReadFile(path + "/go.mod")
 		if err != nil {
 			panic(err)
 		}
 
-		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", importPath+"/"+directory, -1)
-
+		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", *importPath+"/"+*directory, -1)
+		if *router == "mux" {
+			newContents = strings.Replace(string(read), "github.com/letsgo-framework/letsgo-mux", *importPath+"/"+*directory, -1)
+		}
 		err = ioutil.WriteFile(path+"/go.mod", []byte(newContents), 0)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println("go.mod updated")
-		
+
 		// change the internal package (controllers, tests, helpers etc.) paths as per your requirement
 		err = filepath.Walk(path+"/controllers", Visit)
 		if err != nil {
@@ -129,7 +154,7 @@ func main()  {
 		} else {
 			fmt.Println("routes refactored")
 		}
-		
+
 		err = filepath.Walk(path+"/tests", Visit)
 		if err != nil {
 			panic(err)
@@ -172,25 +197,25 @@ func main()  {
 
 	if generateCommand.Parsed() {
 		switch os.Args[2] {
-			case "component", "c":
-				fmt.Println("Generating controller : "+os.Args[3])
-				componentContent := []byte("package controllers")
-				err := ioutil.WriteFile("./controllers/"+os.Args[3]+".go", componentContent, 0644)
-				if err != nil {
-					log.Fatal(err)
-				}
-				break
-			case "type", "t":
-				fmt.Println("Generating type : "+os.Args[3])
-				typeContent := []byte("package types")
-				err := ioutil.WriteFile("./types/"+os.Args[3]+".go", typeContent, 0644)
-				if err != nil {
-					log.Fatal(err)
-				}
-				break
-			default:
-				fmt.Println("Invalid argument")
-				break
+		case "component", "c":
+			fmt.Println("Generating controller : " + os.Args[3])
+			componentContent := []byte("package controllers")
+			err := ioutil.WriteFile("./controllers/"+os.Args[3]+".go", componentContent, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+			break
+		case "type", "t":
+			fmt.Println("Generating type : " + os.Args[3])
+			typeContent := []byte("package types")
+			err := ioutil.WriteFile("./types/"+os.Args[3]+".go", typeContent, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+			break
+		default:
+			fmt.Println("Invalid argument")
+			break
 		}
 	}
 
@@ -217,11 +242,11 @@ func main()  {
 	if versionCommand.Parsed() {
 		letsGoFigure := figure.NewFigure("letsgo-cli", "", true)
 		letsGoFigure.Print()
-		fmt.Println("letsgo-cli : 0.1.3")
+		fmt.Println("letsgo-cli : 0.2.0")
 	}
 
 	if logCommand.Parsed() {
-		if *clearLog == true || *c == true{
+		if *clearLog == true || *c == true {
 			emptyLogFile, err := os.Create("./log/letsgo.log")
 			if err != nil {
 				log.Fatal(err)
@@ -286,8 +311,6 @@ func Usage() {
 	w.Flush()
 }
 
-
-
 func Visit(path string, fi os.FileInfo, err error) error {
 
 	if err != nil {
@@ -302,7 +325,6 @@ func Visit(path string, fi os.FileInfo, err error) error {
 
 	if err != nil {
 		panic(err)
-		return err
 	}
 
 	if matched {
@@ -311,8 +333,10 @@ func Visit(path string, fi os.FileInfo, err error) error {
 			panic(err)
 		}
 
-		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", importPath+"/"+directory, -1)
-		
+		newContents := strings.Replace(string(read), "github.com/letsgo-framework/letsgo", *importPath+"/"+*directory, -1)
+		if *router == "mux" {
+			newContents = strings.Replace(string(read), "github.com/letsgo-framework/letsgo-mux", *importPath+"/"+*directory, -1)
+		}
 		err = ioutil.WriteFile(path, []byte(newContents), 0)
 		if err != nil {
 			panic(err)
