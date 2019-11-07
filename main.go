@@ -115,10 +115,8 @@ func main() {
 		fmt.Println("Cloning complete")
 
 		// Checkout latest tag
-		checkout := exec.Command("git", "checkout", "0.1.1")
-		if *router == "mux" {
-			checkout = exec.Command("git", "checkout", "master")
-		}
+		checkout := exec.Command("git", "checkout", "0.2.0")
+
 		checkout.Dir = path
 		err = checkout.Run()
 		if err != nil {
@@ -244,7 +242,7 @@ func main() {
 	if versionCommand.Parsed() {
 		letsGoFigure := figure.NewFigure("letsgo-cli", "", true)
 		letsGoFigure.Print()
-		fmt.Println("letsgo-cli : 0.1.3")
+		fmt.Println("letsgo-cli : 0.2.0")
 	}
 
 	if logCommand.Parsed() {
